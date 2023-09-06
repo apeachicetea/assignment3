@@ -44,7 +44,7 @@ function Search() {
     Enter: () => {
       goToSearchPage();
     },
-    ArrowDown: () => {
+    ArrowDown: (e) => {
       if (listRef.current.childElementCount === focusIndex + 1) {
         setFocusIndex(() => 0);
         setAutoSearchKeyword(autoSearchList[0].sickNm);
@@ -94,7 +94,7 @@ function Search() {
       />
       <button>검색</button>
 
-      {searchKeyword && containWord ? (
+      {containWord && searchKeyword ? (
         <ul ref={listRef}>
           {autoSearchList.map((sick, listIndex) => {
             return (
