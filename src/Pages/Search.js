@@ -26,8 +26,6 @@ function Search() {
     el.sickNm.includes(searchKeyword)
   );
 
-  console.log(autoSearchKeyword);
-
   const goToSearchPage = () => {
     if (searchKeyword.length === 0 || autoSearchKeyword === 0) return;
 
@@ -56,7 +54,7 @@ function Search() {
       setAutoSearchKeyword(autoSearchList[focusIndex + 1].sickNm);
     },
     ArrowUp: () => {
-      if (focusIndex === -1 || undefined) {
+      if (focusIndex === 0 || undefined) {
         setFocusIndex(() => listRef.current.childElementCount - 1);
         setAutoSearchKeyword(autoSearchList[autoSearchList.length - 1].sickNm);
         return;
