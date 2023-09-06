@@ -47,7 +47,35 @@ function Search() {
 
   const goToSearchPage = () => {
     if (searchKeyword.length === 0 || autoSearchKeyword === 0) return;
-    navigate(`/sick/${isAutoSearch ? autoSearchKeyword : searchKeyword}`);
+
+    const isNotNull = autoSearchList.find((el) => {
+      const keyword = isAutoSearch ? autoSearchKeyword : searchKeyword;
+      return el.sickNm === keyword;
+    });
+
+    console.log(
+      "searchKeyword : ",
+      searchKeyword,
+      "autoSearchKeyword : ",
+      autoSearchKeyword,
+      "isNotNull : ",
+      isNotNull
+    );
+
+    let sickCd;
+
+    if (isNotNull) {
+      sickCd = autoSearchList.filter((el) => {
+        const keyword = isAutoSearch ? autoSearchKeyword : searchKeyword;
+        return el.sickNm === keyword;
+      })[0].sickCd;
+    }
+
+    navigate(
+      `/detail/${
+        isNotNull ? sickCd : isAutoSearch ? autoSearchKeyword : searchKeyword
+      }`
+    );
   };
 
   const KeyEvent = {
@@ -127,7 +155,7 @@ function Search() {
 
       <ul ref={listRef}>
         {autoSearchList.map((sick, listIndex) => (
-          <a href={`/sick/${sick.sickCd}`} key={sick.sickCd}>
+          <a href={`/detail/${sick.sickCd}`} key={sick.sickCd}>
             <li ref={listIndex === focusIndex ? focusRef : undefined}>
               {sick.sickNm}
             </li>
