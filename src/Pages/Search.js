@@ -107,6 +107,7 @@ function Search() {
           })}
         </ul>
       ) : null}
+      {autoSearchList.length === 0 && searchKeyword ? "검색어가 없음" : null}
     </>
   );
 }
