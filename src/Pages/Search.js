@@ -29,9 +29,10 @@ function Search() {
   const goToSearchPage = () => {
     if (searchKeyword.length === 0 || autoSearchKeyword === 0) return;
 
-    const sickCd = autoSearchList.filter(
-      (el) => el.sickNm === autoSearchKeyword
-    )[0].sickCd;
+    const keyword = isAutoSearch ? autoSearchKeyword : searchKeyword;
+
+    const sickCd = autoSearchList.filter((el) => el.sickNm === keyword)[0]
+      .sickCd;
 
     navigate(`/detail/${sickCd}`, {
       state: {
