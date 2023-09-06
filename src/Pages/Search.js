@@ -1,36 +1,15 @@
+import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import "./Search.css";
 
 function Search() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [autoSearchKeyword, setAutoSearchKeyword] = useState("");
-  const [autoSearchList, setAutoSearchList] = useState([
-    {
-      sickCd: "C23",
-      sickNm: "담낭의 악성 신생물",
-    },
-    {
-      sickCd: "K81",
-      sickNm: "담낭염",
-    },
-    {
-      sickCd: "K82",
-      sickNm: "담낭의 기타 질환",
-    },
-    {
-      sickCd: "K87",
-      sickNm: "달리 분류된 질환에서의 담낭, 담도 및 췌장의 장애",
-    },
-    {
-      sickCd: "Q44",
-      sickNm: "담낭, 담관 및 간의 선천기형",
-    },
-  ]);
+  const [autoSearchList, setAutoSearchList] = useState([]);
   const [isInputClicked, setIsInputClicked] = useState(false);
   const [isAutoSearch, setIsAutoSearch] = useState(false);
   const [focusIndex, setFocusIndex] = useState(-1);
-  const focusRef = useRef(null);
-  const scrollRef = useRef(null);
   const listRef = useRef(null);
   const navigate = useNavigate();
 
@@ -38,44 +17,29 @@ function Search() {
     if (isAutoSearch) {
       return;
     }
-    // api 호출하기
+    axios
+      .get(`http://localhost:4000/sick?q=${searchKeyword}`)
+      .then((res) => setAutoSearchList(res.data));
   }, [searchKeyword, isAutoSearch]);
 
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [focusIndex]);
+  const containWord = autoSearchList.filter((el) =>
+    el.sickNm.includes(searchKeyword)
+  );
+
+  console.log(autoSearchKeyword);
 
   const goToSearchPage = () => {
     if (searchKeyword.length === 0 || autoSearchKeyword === 0) return;
 
-    const isNotNull = autoSearchList.find((el) => {
-      const keyword = isAutoSearch ? autoSearchKeyword : searchKeyword;
-      return el.sickNm === keyword;
+    const sickCd = autoSearchList.filter(
+      (el) => el.sickNm === autoSearchKeyword
+    )[0].sickCd;
+
+    navigate(`/detail/${sickCd}`, {
+      state: {
+        data: sickCd,
+      },
     });
-
-    let sickCd;
-
-    if (isNotNull) {
-      sickCd = autoSearchList.filter((el) => {
-        const keyword = isAutoSearch ? autoSearchKeyword : searchKeyword;
-        return el.sickNm === keyword;
-      })[0].sickCd;
-    }
-
-    navigate(
-      `/detail/${
-        isNotNull ? sickCd : isAutoSearch ? autoSearchKeyword : searchKeyword
-      }`,
-      {
-        state: {
-          data: isNotNull
-            ? sickCd
-            : isAutoSearch
-            ? autoSearchKeyword
-            : searchKeyword,
-        },
-      }
-    );
   };
 
   const KeyEvent = {
@@ -83,32 +47,22 @@ function Search() {
       goToSearchPage();
     },
     ArrowDown: () => {
-      if (autoSearchList.length === 0) {
-        return;
-      }
       if (listRef.current.childElementCount === focusIndex + 1) {
         setFocusIndex(() => 0);
+        setAutoSearchKeyword(autoSearchList[0].sickNm);
         return;
       }
-      if (focusIndex === -1) {
-        setIsAutoSearch(true);
-      }
-      setFocusIndex((index) => index + 1);
-      setAutoSearchKeyword(autoSearchList.results[focusIndex + 1].title);
+      setFocusIndex(focusIndex + 1);
+      setAutoSearchKeyword(autoSearchList[focusIndex + 1].sickNm);
     },
     ArrowUp: () => {
-      if (focusIndex === -1) {
+      if (focusIndex === -1 || undefined) {
+        setFocusIndex(() => listRef.current.childElementCount - 1);
+        setAutoSearchKeyword(autoSearchList[autoSearchList.length - 1].sickNm);
         return;
       }
-      if (focusIndex === 0) {
-        setAutoSearchKeyword("");
-        setFocusIndex((index) => index - 1);
-        setIsAutoSearch(false);
-        return;
-      }
-
-      setFocusIndex((index) => index - 1);
-      setAutoSearchKeyword(autoSearchList.results[focusIndex - 1].title);
+      setFocusIndex(focusIndex - 1);
+      setAutoSearchKeyword(autoSearchList[focusIndex - 1].sickNm);
     },
     Escape: () => {
       setAutoSearchKeyword("");
@@ -118,17 +72,6 @@ function Search() {
   };
 
   const handleInputChange = (e) => {
-    if (isAutoSearch) {
-      const enteredValue =
-        e.nativeEvent.inputType === "deleteContentBackward"
-          ? ""
-          : e.nativeEvent.data;
-      focusIndex >= 0 && setSearchKeyword(autoSearchKeyword + enteredValue);
-      setIsAutoSearch(false);
-      setFocusIndex(-1);
-      return;
-    }
-
     setSearchKeyword(e.target.value);
   };
 
@@ -153,15 +96,19 @@ function Search() {
       />
       <button>검색</button>
 
-      <ul ref={listRef}>
-        {autoSearchList.map((sick, listIndex) => (
-          <a href={`/detail/${sick.sickCd}`} key={sick.sickCd}>
-            <li ref={listIndex === focusIndex ? focusRef : undefined}>
-              {sick.sickNm}
-            </li>
-          </a>
-        ))}
-      </ul>
+      {searchKeyword && containWord ? (
+        <ul ref={listRef}>
+          {autoSearchList.map((sick, listIndex) => {
+            return (
+              <a href={`/detail/${sick.sickCd}`} key={sick.sickCd}>
+                <li className={listIndex === focusIndex ? "focused" : ""}>
+                  {sick.sickNm}
+                </li>
+              </a>
+            );
+          })}
+        </ul>
+      ) : null}
     </>
   );
 }
