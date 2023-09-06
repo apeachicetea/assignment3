@@ -53,15 +53,6 @@ function Search() {
       return el.sickNm === keyword;
     });
 
-    console.log(
-      "searchKeyword : ",
-      searchKeyword,
-      "autoSearchKeyword : ",
-      autoSearchKeyword,
-      "isNotNull : ",
-      isNotNull
-    );
-
     let sickCd;
 
     if (isNotNull) {
@@ -74,7 +65,16 @@ function Search() {
     navigate(
       `/detail/${
         isNotNull ? sickCd : isAutoSearch ? autoSearchKeyword : searchKeyword
-      }`
+      }`,
+      {
+        state: {
+          data: isNotNull
+            ? sickCd
+            : isAutoSearch
+            ? autoSearchKeyword
+            : searchKeyword,
+        },
+      }
     );
   };
 
