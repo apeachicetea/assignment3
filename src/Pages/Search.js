@@ -17,14 +17,37 @@ function Search() {
     if (isAutoSearch) {
       return;
     }
-    axios
-      .get(`http://localhost:4000/sick?q=${searchKeyword}`)
-      .then((res) => setAutoSearchList(res.data));
-  }, [searchKeyword, isAutoSearch]);
 
-  const containWord = autoSearchList.filter((el) =>
-    el.sickNm.includes(searchKeyword)
-  );
+    console.log(autoSearchList);
+
+    // 그냥 처음에 쿼리 하나도 안주고 다 받아서 로컬에 저장해
+    const data = JSON.parse(localStorage.getItem("searchList"));
+
+    if (!data) {
+      axios.get(`http://localhost:4000/sick`).then((res) => {
+        localStorage.setItem("searchList", JSON.stringify(res.data));
+        setAutoSearchList(res.data);
+        console.info("calling api");
+      });
+
+      // 그리고 일정기간 지나면 로컬스토리지 없애기
+
+      // 없을때는 요청을 해서 다시 로컬스토리지에 저장하기
+    }
+  }, [isAutoSearch]);
+
+  useEffect(() => {
+    // 그리고 쿼리가 있을때마다 로컬에서 꺼내다 쓰기
+    if (searchKeyword) {
+      const filteredData = autoSearchList.filter((el) =>
+        el.sickNm.includes(searchKeyword)
+      );
+      console.log("filteredData : ", filteredData);
+      if (filteredData.length) {
+        setAutoSearchList(filteredData);
+      }
+    }
+  }, [searchKeyword]);
 
   const goToSearchPage = () => {
     if (searchKeyword.length === 0 || autoSearchKeyword === 0) return;
@@ -47,19 +70,23 @@ function Search() {
     },
     ArrowDown: (e) => {
       if (listRef.current.childElementCount === focusIndex + 1) {
+        setIsAutoSearch(true);
         setFocusIndex(() => 0);
         setAutoSearchKeyword(autoSearchList[0].sickNm);
         return;
       }
+      setIsAutoSearch(true);
       setFocusIndex(focusIndex + 1);
       setAutoSearchKeyword(autoSearchList[focusIndex + 1].sickNm);
     },
     ArrowUp: () => {
       if (focusIndex === 0 || undefined) {
+        setIsAutoSearch(true);
         setFocusIndex(() => listRef.current.childElementCount - 1);
         setAutoSearchKeyword(autoSearchList[autoSearchList.length - 1].sickNm);
         return;
       }
+      setIsAutoSearch(true);
       setFocusIndex(focusIndex - 1);
       setAutoSearchKeyword(autoSearchList[focusIndex - 1].sickNm);
     },
@@ -95,7 +122,7 @@ function Search() {
       />
       <button>검색</button>
 
-      {containWord && searchKeyword ? (
+      {searchKeyword ? (
         <ul ref={listRef}>
           {autoSearchList.map((sick, listIndex) => {
             return (
